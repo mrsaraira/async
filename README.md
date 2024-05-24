@@ -86,3 +86,5 @@ System.out.println(result); // Output: Recovered if retryableTask fail x times
 ### Exception Handling
 All asynchronous methods throw `AsyncExecutionException` if any exception occurs during task execution. It wraps the actual exception for easier handling.
 
+### TBD
+- Extract executor + retryTemplate configurations to properties
