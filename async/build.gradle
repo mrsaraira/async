@@ -7,11 +7,13 @@ repositories {
 }
 
 dependencies {
-    api libs.spring.context
-    api libs.spring.retry
-    api libs.jakarta.validation
-    api libs.slf4j.api
+    implementation libs.spring.context
+    implementation libs.spring.retry
     implementation libs.commons.lang3
+
+    api libs.slf4j.api
+    api libs.jakarta.validation
+
     compileOnly libs.project.lombok
     annotationProcessor libs.project.lombok
 
