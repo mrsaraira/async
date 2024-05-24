@@ -73,16 +73,13 @@ Supplier<String> retryableTask = () -> {
 
 
 String result = asyncService.executeRetryable(retryableTask);
-System.out.println(result); // Output: Success if > 0.5 within 2 attempts or Exception
+System.out.println(result); // might fail here
 
-```
-##### With recovery callback
-
-```java
+// With recovery callback
 Supplier<String> recoveryTask = () -> "Recovered!";
 
 String result = asyncService.executeRetryable(retryableTask, recoveryTask);
-System.out.println(result);
+System.out.println(result); // Output: Recovered if retryableTask fail x times
 
 ```
 
