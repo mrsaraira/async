@@ -12,16 +12,6 @@ Retry Capability: Retry tasks using Spring's RetryTemplate with optional recover
 ### Prerequisites
 Java 21 or above
 
-### Installation
-To include this library in your project, add the following dependency to your pom.xml if you're using Maven:
-```
-<dependency>
-    <groupId>com.mrsaraira</groupId>
-    <artifactId>async-service</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
-
 ### Usage
 
 #### Basic Asynchronous Execution
