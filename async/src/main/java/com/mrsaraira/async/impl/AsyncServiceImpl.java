@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.support.RetryTemplate;
 
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -56,6 +57,21 @@ public final class AsyncServiceImpl implements AsyncService {
         try {
             allOf.get();
             return mergeFunction.apply(future1.get(), future2.get(), future3.get());
+        } catch (Exception e) {
+            throw new AsyncExecutionException(e);
+        }
+    }
+
+    @Override
+    public void execute(@NonNull Runnable... runnables) throws AsyncExecutionException {
+        final var futures = Arrays.stream(runnables)
+                .map(runnable -> CompletableFuture.runAsync(runnable, taskExecutor))
+                .toList();
+
+        final var allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+        try {
+            allOf.get();
         } catch (Exception e) {
             throw new AsyncExecutionException(e);
         }

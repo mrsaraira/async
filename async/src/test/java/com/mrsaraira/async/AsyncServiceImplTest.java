@@ -12,6 +12,11 @@ import org.springframework.context.annotation.Configuration;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 @SpringBootTest(classes = AsyncServiceImplTest.TestConfiguration.class)
 public class AsyncServiceImplTest {
 
@@ -19,7 +24,7 @@ public class AsyncServiceImplTest {
     private AsyncService asyncService;
 
     @Test
-    public void testExecute() {
+    public void testExecuteSuppliers() {
         Supplier<String> first = () -> "Hello";
         Supplier<String> second = () -> "World";
         BiFunction<String, String, String> mergeFunction = (hello, world) -> hello + " " + world;
@@ -43,21 +48,21 @@ public class AsyncServiceImplTest {
 
     @Test
     public void testExecuteRetryableNoError() {
-        Supplier<String> supplier = Mockito.mock(Supplier.class);
+        Supplier<String> supplier = mock(Supplier.class);
         Mockito.when(supplier.get()).thenReturn("Hello");
 
         String result = asyncService.execute(() -> asyncService.executeRetryable(supplier));
         Assertions.assertEquals("Hello", result);
-        Mockito.verify(supplier, Mockito.times(1)).get();
+        verify(supplier, times(1)).get();
     }
 
     @Test
     public void testExecuteSingleRetryableSupplierWithException() {
-        Supplier<String> supplier = Mockito.mock(Supplier.class);
+        Supplier<String> supplier = mock(Supplier.class);
         Mockito.when(supplier.get()).thenThrow(new RuntimeException("Error"));
 
         Assertions.assertThrows(AsyncExecutionException.class, () -> asyncService.executeRetryable(supplier));
-        Mockito.verify(supplier, Mockito.times(2)).get();
+        verify(supplier, times(2)).get();
     }
 
     @Test
@@ -75,7 +80,7 @@ public class AsyncServiceImplTest {
 
     @Test
     public void testExecuteRetryableWithException() {
-        Supplier<String> errorSupplier = Mockito.mock(Supplier.class);
+        Supplier<String> errorSupplier = mock(Supplier.class);
         Mockito.when(errorSupplier.get()).thenThrow(new IllegalArgumentException("Error"));
         Supplier<String> second = () -> "World";
         BiFunction<String, String, String> mergeFunction = (first, sec) -> first + " " + sec;
@@ -84,25 +89,25 @@ public class AsyncServiceImplTest {
             asyncService.execute(() -> asyncService.executeRetryable(errorSupplier), second, mergeFunction);
         });
 
-        Mockito.verify(errorSupplier, Mockito.times(2)).get();
+        verify(errorSupplier, times(2)).get();
     }
 
     @Test
     public void testExecuteRetryableWithRecovery() {
-        Supplier<String> errorSupplier = Mockito.mock(Supplier.class);
+        Supplier<String> errorSupplier = mock(Supplier.class);
         Mockito.when(errorSupplier.get()).thenThrow(new IllegalStateException("Error"));
         Supplier<String> recoveryCallback = () -> "Recovery";
 
         String result = asyncService.executeRetryable(errorSupplier, recoveryCallback);
 
         Assertions.assertEquals("Recovery", result);
-        Mockito.verify(errorSupplier, Mockito.times(2)).get();
+        verify(errorSupplier, times(2)).get();
     }
 
     @Test
     public void testExecuteWithThreeSuppliersWithExceptionRecovery() {
         Supplier<String> first = () -> "Hello";
-        Supplier<String> errorSupplier = Mockito.mock(Supplier.class);
+        Supplier<String> errorSupplier = mock(Supplier.class);
         Mockito.when(errorSupplier.get()).thenThrow(new UnsupportedOperationException("Error"));
         Supplier<String> third = () -> "World";
         TriFunction<String, String, String, String> mergeFunction = (a, b, c) -> a + " " + b + " " + c;
@@ -115,7 +120,25 @@ public class AsyncServiceImplTest {
         );
 
         Assertions.assertEquals("Hello Recovered World", result);
-        Mockito.verify(errorSupplier, Mockito.times(2)).get();
+        verify(errorSupplier, times(2)).get();
+    }
+
+    @Test
+    public void testExecuteRunnables() {
+        final var runnable1 = mock(Runnable.class);
+        final var runnable2 = mock(Runnable.class);
+        final var runnable3 = mock(Runnable.class);
+
+        try {
+            asyncService.execute(runnable1, runnable2, runnable3);
+
+            verify(runnable1, times(1)).run();
+            verify(runnable2, times(1)).run();
+            verify(runnable3, times(1)).run();
+        } catch (Exception e) {
+            fail("Execution threw an exception", e);
+        }
+
     }
 
     @ComponentScan("com.mrsaraira.async")

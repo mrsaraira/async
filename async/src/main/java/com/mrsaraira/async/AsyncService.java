@@ -54,6 +54,14 @@ public interface AsyncService {
     <T, U, V, R> R execute(@NotNull Supplier<T> first, @NotNull Supplier<U> second, @NotNull Supplier<V> third, @NotNull TriFunction<T, U, V, R> mergeFunction) throws AsyncExecutionException;
 
     /**
+     * Executes the given list of Runnables asynchronously.
+     *
+     * @param runnables the list of Runnable to execute asynchronously
+     * @throws AsyncExecutionException if an error occurs during the asynchronous execution
+     */
+    void execute(@NotNull Runnable... runnables) throws AsyncExecutionException;
+
+    /**
      * Executes the given supplier with retry functionality.
      *
      * @param supplier The supplier to be executed with retry logic.
